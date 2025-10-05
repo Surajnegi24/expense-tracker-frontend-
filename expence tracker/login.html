@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashTrack - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-logo {
+            font-size: 3rem;
+            color: #4a6491;
+            margin-bottom: 15px;
+        }
+        
+        .login-title {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .login-title h1 {
+            margin-bottom: 5px;
+        }
+        
+        .form-control {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-control input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control input:focus {
+            border-color: #4a6491;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #login-error {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+        
+        .demo-credentials {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="login-title">
+            <h1>CashTrack</h1>
+            <p>Sign in to your account</p>
+        </div>
+        
+        <form id="login-form">
+            <div class="form-control">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-control">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+            <div id="login-error"></div>
+        </form>
+        
+        <div class="demo-credentials">
+            <p><strong>Demo Credentials:</strong></p>
+            <p>Username: <strong>admin</strong></p>
+            <p>Password: <strong>password123</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        if (sessionStorage.getItem('expenseTrackerAuth')) {
+            window.location.href = 'index.html';
+        }
+
+        // Login Form Handling
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorElement = document.getElementById('login-error');
+            
+            // Simple validation (in real app, use server-side validation)
+            if (username === 'admin' && password === 'password123') {
+                // Create auth session
+                const authData = {
+                    username: username,
+                    loggedInAt: new Date().getTime(),
+                    token: 'demo_token_' + Math.random().toString(36).substr(2, 16)
+                };
+                
+                // Store in sessionStorage
+                sessionStorage.setItem('expenseTrackerAuth', JSON.stringify(authData));
+                
+                // Redirect to main app
+                window.location.href = 'index.html';
+            } else {
+                errorElement.textContent = 'Invalid username or password';
+                document.getElementById('password').value = '';
+            }
+        });
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html>

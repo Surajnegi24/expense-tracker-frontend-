@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashTrack - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+                <span>CashTrack</span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="navigate('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="nav-item" onclick="navigate('transactions')">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transactions</span>
+                </li>
+                <li class="nav-item" onclick="navigate('reports')">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reports</span>
+                </li>
+                <li class="nav-item" onclick="navigate('budgets')">
+                    <i class="fas fa-wallet"></i>
+                    <span>Budgets</span>
+                </li>
+                <li class="nav-item" onclick="navigate('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+                <li class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span id="username-display">Guest</span>
+                </div>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="card balance">
+                    <h3>Total Balance</h3>
+                    <div class="amount" id="balance">₹0.00</div>
+                </div>
+                <div class="card income">
+                    <h3>Income</h3>
+                    <div class="amount" id="income">+₹0.00</div>
+                </div>
+                <div class="card expense">
+                    <h3>Expenses</h3>
+                    <div class="amount" id="expense">-₹0.00</div>
+                </div>
+            </div>
+            
+            <!-- Add Transaction -->
+            <div class="add-transaction">
+                <select id="type">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+                <input type="text" id="description" placeholder="Description">
+                <select id="category">
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Bills">Bills</option>
+                    <option value="Salary">Salary</option>
+                </select>
+                <input type="number" id="amount" placeholder="Amount">
+                <button id="add-btn">Add</button>
+            </div>
+            
+            <!-- Recent Transactions -->
+            <div class="transactions">
+                <h2 class="section-title">
+                    <span>Recent Transactions</span>
+                    <a href="#" onclick="navigate('transactions')" style="font-size: 0.9rem; font-weight: normal;">View All</a>
+                </h2>
+                
+                <ul class="transaction-list" id="transaction-list">
+                    <!-- Transactions will be loaded here dynamically -->
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>No transactions yet. Add your first transaction!</p>
+                    </div>
+                </ul>
+            </div>
+            
+            <!-- Budgets -->
+            <div class="budgets">
+                <h2 class="section-title">Monthly Budgets</h2>
+                
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <span>Food</span>
+                        <span id="food-budget">₹0/₹5000</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="food-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="budget-amount" id="food-percent">0% spent</div>
+                </div>
+                
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <span>Transportation</span>
+                        <span id="transport-budget">₹0/₹3000</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="transport-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="budget-amount" id="transport-percent">0% spent</div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts">
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="incomeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Check authentication first
+        if (!sessionStorage.getItem('expenseTrackerAuth')) {
+            window.location.href = 'login.html';
+        } else {
+            // Load username if available
+            const authData = JSON.parse(sessionStorage.getItem('expenseTrackerAuth'));
+            if (authData && authData.username) {
+                document.getElementById('username-display').textContent = authData.username;
+            }
+        }
+
+        // Navigation function
+        function navigate(page) {
+            // In a real app, this would load different pages
+            // For now, we'll just show an alert
+            alert(`Navigating to ${page} page (this would load ${page}.html in a complete app)`);
+            
+            // Highlight active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Update page title
+            document.querySelector('h1').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+        }
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('expenseTrackerAuth');
+            window.location.href = 'login.html';
+        }
+
+        // Sample Data - Will be empty initially
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        
+        // Initialize Charts
+        let expenseChart, incomeChart;
+
+        // Initialize App
+        function init() {
+            updateSummary();
+            renderTransactions();
+            initCharts();
+            updateBudgets();
+        }
+
+        // Update Balance, Income, Expense
+        function updateSummary() {
+            const income = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = income - expense;
+            
+            document.getElementById('balance').textContent = `₹${balance.toFixed(2)}`;
+            document.getElementById('income').textContent = `+₹${income.toFixed(2)}`;
+            document.getElementById('expense').textContent = `-₹${expense.toFixed(2)}`;
+        }
+
+        // Render Transactions
+        function renderTransactions() {
+            const transactionList = document.getElementById('transaction-list');
+            
+            if (transactions.length === 0) {
+                transactionList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>No transactions yet. Add your first transaction!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            transactionList.innerHTML = '';
+            
+            // Show only last 5 transactions
+            const recentTransactions = transactions.slice(0, 5);
+            
+            recentTransactions.forEach(transaction => {
+                const iconClass = getIconClass(transaction.category);
+                const sign = transaction.type === 'income' ? '+' : '-';
+                const amountClass = transaction.type === 'income' ? 'income-text' : 'expense-text';
+                
+                const transactionItem = document.createElement('li');
+                transactionItem.className = 'transaction-item';
+                transactionItem.innerHTML = `
+                    <div class="transaction-icon">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">${transaction.description}</div>
+                        <div class="transaction-category">${transaction.category}</div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">${sign}₹${transaction.amount.toFixed(2)}</div>
+                    <div class="transaction-date">${transaction.date || new Date().toLocaleDateString()}</div>
+                `;
+                
+                transactionList.appendChild(transactionItem);
+            });
+        }
+
+        // Update Budgets
+        function updateBudgets() {
+            // Food budget
+            const foodSpent = transactions
+                .filter(t => t.type === 'expense' && t.category === 'Food')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const foodBudget = 5000;
+            const foodPercent = Math.min(100, (foodSpent / foodBudget) * 100);
+            
+            document.getElementById('food-budget').textContent = `₹${Math.abs(foodSpent).toFixed(2)}/₹${foodBudget.toFixed(2)}`;
+            document.getElementById('food-progress').style.width = `${foodPercent}%`;
+            document.getElementById('food-percent').textContent = `${foodPercent.toFixed(0)}% spent`;
+            
+            // Transport budget
+            const transportSpent = transactions
+                .filter(t => t.type === 'expense' && t.category === 'Transport')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const transportBudget = 3000;
+            const transportPercent = Math.min(100, (transportSpent / transportBudget) * 100);
+            
+            document.getElementById('transport-budget').textContent = `₹${Math.abs(transportSpent).toFixed(2)}/₹${transportBudget.toFixed(2)}`;
+            document.getElementById('transport-progress').style.width = `${transportPercent}%`;
+            document.getElementById('transport-percent').textContent = `${transportPercent.toFixed(0)}% spent`;
+        }
+
+        // Get Icon Class for Category
+        function getIconClass(category) {
+            const icons = {
+                'Food': 'fa-utensils',
+                'Transport': 'fa-car',
+                'Shopping': 'fa-shopping-bag',
+                'Entertainment': 'fa-gamepad',
+                'Bills': 'fa-file-invoice-dollar',
+                'Salary': 'fa-money-bill-wave'
+            };
+            return icons[category] || 'fa-wallet';
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Expense Chart
+            const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+            expenseChart = new Chart(expenseCtx, {
+                type: 'doughnut',
+                data: getExpenseChartData(),
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Expense Breakdown',
+                            font: { size: 16 }
+                        }
+                    }
+                }
+            });
+            
+            // Income Chart
+            const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+            incomeChart = new Chart(incomeCtx, {
+                type: 'bar',
+                data: getIncomeChartData(),
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monthly Income',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Get Data for Expense Chart
+        function getExpenseChartData() {
+            const categories = {};
+            
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    categories[t.category] = (categories[t.category] || 0) + Math.abs(t.amount);
+                });
+            
+            return {
+                labels: Object.keys(categories),
+                datasets: [{
+                    data: Object.values(categories),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                    borderWidth: 1
+                }]
+            };
+        }
+
+        // Get Data for Income Chart
+        function getIncomeChartData() {
+            // Group by month (simplified example)
+            return {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Income',
+                    data: [28000, 32000, 29000, 31000, 35000],
+                    backgroundColor: '#2ecc71',
+                    borderWidth: 1
+                }]
+            };
+        }
+
+        // Add New Transaction
+        document.getElementById('add-btn').addEventListener('click', function() {
+            const type = document.getElementById('type').value;
+            const description = document.getElementById('description').value.trim();
+            const category = document.getElementById('category').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            if (!description || isNaN(amount)) {
+                alert('Please fill all fields with valid values');
+                return;
+            }
+            
+            // Create new transaction
+            const newTransaction = {
+                id: Date.now(),
+                type,
+                description,
+                category,
+                amount: type === 'income' ? amount : -amount,
+                date: new Date().toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                })
+            };
+            
+            transactions.unshift(newTransaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            
+            updateSummary();
+            renderTransactions();
+            updateBudgets();
+            
+            // Update charts
+            expenseChart.data = getExpenseChartData();
+            expenseChart.update();
+            
+            // Clear form
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+        });
+
+        // Initialize the app
+        init();
+        
+    </script>
+    <script src="data.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
