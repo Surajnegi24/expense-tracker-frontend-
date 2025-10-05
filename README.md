@@ -52,5 +52,6 @@ It allows users to record their income and expenses, view total balance, and tra
    ```bash
    git clone https://github.com/<your-username>/expense-tracker.git
 
-## AUTHOR
+## Developer
    Suraj singh negi
+
